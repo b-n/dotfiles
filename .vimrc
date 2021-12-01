@@ -27,6 +27,7 @@ Plug 'ervandew/supertab'
 Plug 'editorconfig/editorconfig-vim'
 Plug 'tmhedberg/matchit'
 Plug 'dense-analysis/ale'
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'janko/vim-test'
 
 " specific code holders/syntax
@@ -41,6 +42,8 @@ Plug 'peitalin/vim-jsx-typescript'
 Plug 'vim-ruby/vim-ruby'
 Plug 'chr4/nginx.vim'
 Plug 'lepture/vim-jinja'
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+Plug 'rust-lang/rust.vim'
 
 " misc
 Plug 'vim-scripts/ScrollColors'
@@ -81,7 +84,6 @@ let g:jsx_ext_required = 0
 " supertab scroll setting top to bottom
 let g:SuperTabDefaultCompletionType = '<C-n>'
 
-
 " undotree settings
 let g:undotree_WindowLayout = 4
 let g:undotree_SplitWidth = 40
@@ -115,13 +117,23 @@ nnoremap <silent> <leader>tv :TestVisit<CR>
 
 " ale bindings
 nnoremap <silent> <leader>gd :ALEGoToDefinition<CR>
-" Make rubocop run from bundle instead of global
+nnoremap <silent> <leader>ad :ALEDetail<CR>
+nnoremap <silent> <leader>af :ALEFix<CR>
+
+" rust/cargo bindings
+nnoremap <silent> <leader>rc :!cargo run<CR>
+
 let g:ale_ruby_rubocop_executable = 'bundle'
 let g:ale_linters_ignore = {
-      \ 'typescriptreact': ['deno'],
-      \ 'ruby': ['standardrb','ruby','brakeman']
+      \ 'go': ['gopls'],
+      \ 'ruby': ['standardrb','ruby','brakeman'],
+      \ 'rust': ['rls'],
+      \ 'typescriptreact': ['deno']
       \ }
-" use ale omnicomplete
+let g:ale_fixers = {
+      \   'ruby': ['standardrb'],
+      \   'rust': ['rustfmt']
+      \}
 let g:ale_completion_enabled = 1
 set omnifunc=ale#completion#OmniFunc
 let g:ale_completion_autoimport = 1
@@ -149,3 +161,28 @@ au BufRead,BufNewFile */cw-nginx/*/*.proxy set ft=nginx
 nnoremap <silent> <leader>ss :0s/^/\#\ frozen_string_literal:\ true\r\r/g<CR>:w<CR>
 
 command! -bang -bar -nargs=* Gpush execute 'Dispatch<bang> -dir=' . fnameescape(FugitiveGitDir()) 'git push' <q-args>
+
+function! OpenZippedFile(f)
+  " get number of new (empty) buffer
+  let l:b = bufnr('%')
+  " construct full path
+  let l:f = substitute(a:f, '$$virtual.*cache', 'cache', '')
+  let l:f = 'zipfile:' . getcwd() . '/' . substitute(l:f, '.zip/', '.zip::', '')
+  " swap back to original buffer
+  b #
+  " delete new one
+  exe 'bd! ' . l:b
+  " open buffer with correct path
+  sil exe 'e ' . l:f
+  " read in zip data
+  call zip#Read(l:f, 1)
+endfunction
+
+augroup yarngtd
+  au!
+
+  au BufReadCmd *.yarn/$$virtual/*.zip/* call OpenZippedFile(expand('<afile>'))
+  au BufReadCmd *.yarn/cache/*.zip/* call OpenZippedFile(expand('<afile>'))
+augroup END
+
+hi SpellBad ctermbg=8
