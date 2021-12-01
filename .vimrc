@@ -8,6 +8,8 @@ endif
 call plug#begin('~/.vim/bundle')
 " utils
 Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-dispatch'
+Plug 'tpope/vim-abolish'
 Plug 'jlanzarotta/bufexplorer'
 Plug 'mbbill/undotree'
 Plug 'scrooloose/nerdtree'
@@ -18,7 +20,6 @@ Plug 'will133/vim-dirdiff'
 Plug 'mileszs/ack.vim'
 
 " generic code helpers
-Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clangd-completer' }
 Plug 'tpope/vim-endwise'
 Plug 'vim-scripts/delimitMate.vim'
 Plug 'scrooloose/nerdcommenter'
@@ -35,7 +36,6 @@ Plug 'othree/yajs.vim'
 Plug 'othree/xml.vim'
 Plug 'mxw/vim-jsx'
 Plug 'styled-components/vim-styled-components', { 'branch': 'main' }
-Plug 'Quramy/tsuquyomi'
 Plug 'leafgarland/typescript-vim'
 Plug 'peitalin/vim-jsx-typescript'
 Plug 'vim-ruby/vim-ruby'
@@ -44,6 +44,7 @@ Plug 'lepture/vim-jinja'
 
 " misc
 Plug 'vim-scripts/ScrollColors'
+Plug 'kshenoy/vim-signature'
 Plug 'noah/vim256-color'
 call plug#end()
 filetype plugin indent on
@@ -77,33 +78,13 @@ set history=1000
 " vim-jsx load .js files too
 let g:jsx_ext_required = 0
 
-" make YCM compatible with supertab
-let g:ycm_key_list_select_completion = ['<Down>']
-let g:ycm_autoclose_preview_window_after_completion = 1
+" supertab scroll setting top to bottom
 let g:SuperTabDefaultCompletionType = '<C-n>'
 
-" other YCM settings
-let g:ycm_autoclose_preview_window_after_completion = 1
-
-" YCM LSP settings
-let s:lsp = '~/.vim/lsp'
-let g:ycm_language_server = [
-  \   {
-  \     'name': 'ruby',
-  \     'cmdline': [ expand( s:lsp . '/ruby/bin/solargraph' ), 'stdio' ],
-  \     'filetypes': [ 'ruby' ],
-  \   },
-  \ ]
 
 " undotree settings
 let g:undotree_WindowLayout = 4
 let g:undotree_SplitWidth = 40
-
-" syntastic settings
-let g:syntastic_javascript_checkers = ['eslint']
-let g:syntastic_javascript_eslint_exe='$(npm bin)/eslint'
-let g:syntastic_typescript_checkers = ['eslint']
-let g:syntastic_javascript_checkers = []
 
 " ack settings for silver searcher (ag)
 let g:ackprg = 'ag --nogroup --nocolor --column'
@@ -113,8 +94,6 @@ nnoremap <F5> :UndotreeToggle<cr>
 nnoremap <leader>ev :vsplit $MYVIMRC<cr>
 nnoremap <leader>sv :source $MYVIMRC<cr>
 nnoremap <silent> <C-n> :NERDTreeToggle %<CR>
-nnoremap <leader>sc :SyntasticCheck<cr>
-nnoremap <leader>sm :SyntasticToggleMode<cr>
 nnoremap <silent> <leader>a :Ack <C-r><C-w><cr>
 
 " Super tab mappings
@@ -138,12 +117,20 @@ nnoremap <silent> <leader>tv :TestVisit<CR>
 nnoremap <silent> <leader>gd :ALEGoToDefinition<CR>
 " Make rubocop run from bundle instead of global
 let g:ale_ruby_rubocop_executable = 'bundle'
+let g:ale_linters_ignore = {
+      \ 'typescriptreact': ['deno'],
+      \ 'ruby': ['standardrb','ruby','brakeman']
+      \ }
+" use ale omnicomplete
+let g:ale_completion_enabled = 1
+set omnifunc=ale#completion#OmniFunc
+let g:ale_completion_autoimport = 1
 
-" SFDX vim mappings and commands
+" Execute and get results in new window
 function! s:ExecuteInShell(command)
   let command = join(map(split(a:command), 'expand(v:val)'))
-  let winnr = bufwinnr('^SFDXPopWindow$')
-  silent! execute  winnr < 0 ? 'botright new SFDXPopWindow' : winnr . 'wincmd w'
+  let winnr = bufwinnr('^ShellExecPop$')
+  silent! execute  winnr < 0 ? 'botright new ShellExecPop' : winnr . 'wincmd w'
   setlocal buftype=nowrite bufhidden=wipe nobuflisted noswapfile nowrap number
   echo 'Execute ' . command . '...'
   silent! execute 'silent %!'. command
@@ -160,8 +147,5 @@ au BufRead,BufNewFile */cw-nginx/*/*.conf set ft=nginx
 au BufRead,BufNewFile */cw-nginx/*/*.proxy set ft=nginx
 
 nnoremap <silent> <leader>ss :0s/^/\#\ frozen_string_literal:\ true\r\r/g<CR>:w<CR>
-nnoremap <silent> <leader>fa :s/',\ git[^,]*,\ tag:\ 'v/',\ '/g<CR>
-nnoremap <silent> <leader>fs /cw-<CR>Osource 'https://rubygems.pkg.github.com/catawiki' do<ESC>
-nnoremap <silent> <leader>fd oARG BUNDLE_RUBYGEMS__PKG__GITHUB__COM<ESC>
-nnoremap <silent> <leader>fc :1<CR>iUpdate to use github packages for ruby gems<ESC>
-nnoremap <silent> <leader>cm ddiUpdate cw-sdk to support .com migration<CR><ESC>
+
+command! -bang -bar -nargs=* Gpush execute 'Dispatch<bang> -dir=' . fnameescape(FugitiveGitDir()) 'git push' <q-args>
