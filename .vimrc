@@ -8,6 +8,7 @@ endif
 call plug#begin('~/.vim/bundle')
 " utils
 Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-rhubarb'
 Plug 'tpope/vim-dispatch'
 Plug 'tpope/vim-abolish'
 Plug 'jlanzarotta/bufexplorer'
@@ -29,6 +30,7 @@ Plug 'tmhedberg/matchit'
 Plug 'dense-analysis/ale'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'janko/vim-test'
+Plug 'puremourning/vimspector'
 
 " specific code holders/syntax
 Plug 'tpope/vim-rails'
@@ -89,14 +91,15 @@ let g:undotree_WindowLayout = 4
 let g:undotree_SplitWidth = 40
 
 " ack settings for silver searcher (ag)
-let g:ackprg = 'ag --nogroup --nocolor --column'
+" let g:ackprg = 'ag --nogroup --nocolor --column'
+let g:ackprg = 'rg --vimgrep --no-heading'
 
 " custom mappings
-nnoremap <F5> :UndotreeToggle<cr>
+"nnoremap <F5> :UndotreeToggle<cr>
 nnoremap <leader>ev :vsplit $MYVIMRC<cr>
 nnoremap <leader>sv :source $MYVIMRC<cr>
 nnoremap <silent> <C-n> :NERDTreeToggle %<CR>
-nnoremap <silent> <leader>a :Ack <C-r><C-w><cr>
+nnoremap <silent> <leader>aa :Ack <C-r><C-w><cr>
 
 " Super tab mappings
 inoremap <C-Space> <C-x><C-o>
@@ -114,6 +117,8 @@ nnoremap <silent> <leader>tt :TestFile<CR>
 nnoremap <silent> <leader>tT :TestLast<CR>
 nnoremap <silent> <leader>ts :TestSuite<CR>
 nnoremap <silent> <leader>tv :TestVisit<CR>
+let test#strategy = "vimterminal"
+"let test#strategy = "kitty"
 
 " ale bindings
 nnoremap <silent> <leader>gd :ALEGoToDefinition<CR>
@@ -128,7 +133,8 @@ let g:ale_linters_ignore = {
       \ 'go': ['gopls'],
       \ 'ruby': ['standardrb','ruby','brakeman'],
       \ 'rust': ['rls'],
-      \ 'typescriptreact': ['deno']
+      \ 'typescriptreact': ['deno'],
+      \ 'typescript': ['deno']
       \ }
 let g:ale_fixers = {
       \   'ruby': ['standardrb'],
@@ -186,3 +192,11 @@ augroup yarngtd
 augroup END
 
 hi SpellBad ctermbg=8
+
+let g:vimspector_enable_mappings = 'HUMAN'
+nmap <Leader>dl :call vimspector#Launch("Run Test")<CR>
+xmap <Leader>di <Plug>VimspectorBalloonEval
+nmap <LocalLeader><F11> <Plug>VimspectorUpFrame
+nmap <LocalLeader><F12> <Plug>VimspectorDownFrame
+
+nnoremap <leader>rs :s/'\([^']\+\)'/:\1/g<CR>
