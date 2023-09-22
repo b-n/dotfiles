@@ -46,6 +46,7 @@ Plug 'chr4/nginx.vim'
 Plug 'lepture/vim-jinja'
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'rust-lang/rust.vim'
+Plug 'hashivim/vim-terraform'
 
 " misc
 Plug 'vim-scripts/ScrollColors'
@@ -127,6 +128,8 @@ nnoremap <silent> <leader>af :ALEFix<CR>
 
 " rust/cargo bindings
 nnoremap <silent> <leader>rc :!cargo run<CR>
+let g:rustfmt_autosave = 1
+let g:ale_rust_cargo_use_clippy = 1 
 
 let g:ale_ruby_rubocop_executable = 'bundle'
 let g:ale_linters_ignore = {
@@ -138,11 +141,14 @@ let g:ale_linters_ignore = {
       \ }
 let g:ale_fixers = {
       \   'ruby': ['standardrb'],
-      \   'rust': ['rustfmt']
+      \   'rust': ['rustfmt'],
+      \   'terraform': ['terraform']
       \}
 let g:ale_completion_enabled = 1
 set omnifunc=ale#completion#OmniFunc
 let g:ale_completion_autoimport = 1
+
+let g:terraform_fmt_on_save = 1
 
 " Execute and get results in new window
 function! s:ExecuteInShell(command)
@@ -164,7 +170,7 @@ command! -complete=shellcmd -nargs=+ Shell call s:ExecuteInShell(<q-args>)
 au BufRead,BufNewFile */cw-nginx/*/*.conf set ft=nginx
 au BufRead,BufNewFile */cw-nginx/*/*.proxy set ft=nginx
 
-nnoremap <silent> <leader>ss :0s/^/\#\ frozen_string_literal:\ true\r\r/g<CR>:w<CR>
+nnoremap <silent> <leader>rs :0s/^/\#\ frozen_string_literal:\ true\r\r/g<CR>:w<CR>
 
 command! -bang -bar -nargs=* Gpush execute 'Dispatch<bang> -dir=' . fnameescape(FugitiveGitDir()) 'git push' <q-args>
 
@@ -200,3 +206,23 @@ nmap <LocalLeader><F11> <Plug>VimspectorUpFrame
 nmap <LocalLeader><F12> <Plug>VimspectorDownFrame
 
 nnoremap <leader>rs :s/'\([^']\+\)'/:\1/g<CR>
+
+nnoremap <silent> <leader>sb :Git blame<CR>
+nnoremap <silent> <leader>sd :Gvdiffsplit<CR>
+nnoremap <silent> <leader>ss :G<CR>
+
+function! RustCoverage()
+  " harvested from https://blog.rng0.io/how-to-do-code-coverage-in-rust
+  let rm = execute('!rm -rf coverage')
+  let mkdir = execute('!mkdir -p coverage')
+
+  :silent execute '!CARGO_INCREMENTAL=0 RUSTFLAGS=-Cinstrument-coverage LLVM_PROFILE_FILE=cargo-test-%p-%m.profraw cargo test'
+
+  let val = execute('!grcov . --binary-path ./target/debug/deps/ -s . -t lcov --branch --ignore-not-existing --ignore "../*" --ignore "/*" -o coverage/coverage.info')
+
+  :silent execute '!rm -rf cargo-test-src/'
+
+  redraw!
+endfunction
+
+nnoremap <silent> <leader>rt :call RustCoverage()<CR>
