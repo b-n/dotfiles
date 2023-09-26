@@ -14,11 +14,12 @@ Plug 'tpope/vim-abolish'
 Plug 'jlanzarotta/bufexplorer'
 Plug 'mbbill/undotree'
 Plug 'scrooloose/nerdtree'
-Plug 'bling/vim-airline'
+Plug 'vim-airline/vim-airline'
 Plug 'vim-scripts/ZoomWin'
 Plug 'easymotion/vim-easymotion'
 Plug 'will133/vim-dirdiff'
 Plug 'mileszs/ack.vim'
+Plug 'mattn/webapi-vim'
 
 " generic code helpers
 Plug 'tpope/vim-endwise'
@@ -47,6 +48,7 @@ Plug 'lepture/vim-jinja'
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'rust-lang/rust.vim'
 Plug 'hashivim/vim-terraform'
+Plug 'cespare/vim-toml', { 'branch': 'main' }
 
 " misc
 Plug 'vim-scripts/ScrollColors'
@@ -54,6 +56,8 @@ Plug 'kshenoy/vim-signature'
 Plug 'noah/vim256-color'
 call plug#end()
 filetype plugin indent on
+
+source ~/.vim/plugin/abolish.vim
 
 " fix char encoding on mac
 scriptencoding utf-8
@@ -128,8 +132,7 @@ nnoremap <silent> <leader>af :ALEFix<CR>
 
 " rust/cargo bindings
 nnoremap <silent> <leader>rc :!cargo run<CR>
-let g:rustfmt_autosave = 1
-let g:ale_rust_cargo_use_clippy = 1 
+nnoremap <silent> <leader>rp :RustPlay<CR>
 
 let g:ale_ruby_rubocop_executable = 'bundle'
 let g:ale_linters_ignore = {
@@ -142,11 +145,25 @@ let g:ale_linters_ignore = {
 let g:ale_fixers = {
       \   'ruby': ['standardrb'],
       \   'rust': ['rustfmt'],
-      \   'terraform': ['terraform']
+      \   'terraform': ['terraform'],
+      \   'markdown': ['dprint']
       \}
+let g:ale_linters = {
+      \ 'rust': ['cargo', 'analyzer']
+      \ }
 let g:ale_completion_enabled = 1
 set omnifunc=ale#completion#OmniFunc
 let g:ale_completion_autoimport = 1
+let g:ale_rust_cargo_use_clippy = executable('cargo-clippy')
+let g:ale_rust_cargo_check_all_targets = 1
+let g:ale_rust_cargo_check_tests = 1
+
+" rust.vim things
+let g:rust_clip_command = 'xclip -selection clipboard'
+let g:rustfmt_autosave = 1
+
+" terraform vim things
+let g:terraform_fmt_on_save = 1
 
 let g:terraform_fmt_on_save = 1
 
