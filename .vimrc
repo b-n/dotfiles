@@ -243,3 +243,6 @@ function! RustCoverage()
 endfunction
 
 nnoremap <silent> <leader>rt :call RustCoverage()<CR>
+
+" Ensure Tiltfile is highlighted as Bazel code
+au BufRead,BufNewFile Tiltfile set filetype=bzl
