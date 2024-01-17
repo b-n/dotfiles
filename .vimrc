@@ -32,6 +32,7 @@ Plug 'dense-analysis/ale'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'janko/vim-test'
 Plug 'puremourning/vimspector'
+Plug 'github/copilot.vim'
 
 " specific code holders/syntax
 Plug 'tpope/vim-rails'
@@ -213,6 +214,9 @@ augroup yarngtd
   au BufReadCmd *.yarn/$$virtual/*.zip/* call OpenZippedFile(expand('<afile>'))
   au BufReadCmd *.yarn/cache/*.zip/* call OpenZippedFile(expand('<afile>'))
 augroup END
+
+imap <M-Up> <Plug>(copilot-previous)
+imap <M-Down> <Plug>(copilot-next)
 
 hi SpellBad ctermbg=8
 
