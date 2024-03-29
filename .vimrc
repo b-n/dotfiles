@@ -33,6 +33,8 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'janko/vim-test'
 Plug 'puremourning/vimspector'
 Plug 'github/copilot.vim'
+Plug 'psf/black', { 'branch': 'stable' }
+Plug 'gryf/pylint-vim'
 
 " specific code holders/syntax
 Plug 'tpope/vim-rails'
@@ -147,11 +149,13 @@ let g:ale_fixers = {
       \   'ruby': ['standardrb'],
       \   'rust': ['rustfmt'],
       \   'terraform': ['terraform'],
-      \   'markdown': ['dprint']
+      \   'markdown': ['dprint'],
+      \   'python': ['black']
       \}
 let g:ale_linters = {
       \ 'rust': ['cargo', 'analyzer']
       \ }
+
 let g:ale_completion_enabled = 1
 set omnifunc=ale#completion#OmniFunc
 let g:ale_completion_autoimport = 1
@@ -249,4 +253,4 @@ endfunction
 nnoremap <silent> <leader>rt :call RustCoverage()<CR>
 
 " Ensure Tiltfile is highlighted as Bazel code
-au BufRead,BufNewFile Tiltfile set filetype=bzl
+au BufRead,BufNewFile Tiltfile set filetype=python
