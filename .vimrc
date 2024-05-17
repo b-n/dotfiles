@@ -52,6 +52,7 @@ Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'rust-lang/rust.vim'
 Plug 'hashivim/vim-terraform'
 Plug 'cespare/vim-toml', { 'branch': 'main' }
+Plug 'earthly/earthly.vim', { 'branch': 'main' }
 
 " misc
 Plug 'vim-scripts/ScrollColors'
