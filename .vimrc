@@ -57,7 +57,6 @@ Plug 'earthly/earthly.vim', { 'branch': 'main' }
 " misc
 Plug 'vim-scripts/ScrollColors'
 Plug 'kshenoy/vim-signature'
-Plug 'noah/vim256-color'
 call plug#end()
 filetype plugin indent on
 
