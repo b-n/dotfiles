@@ -1,4 +1,5 @@
 set nocompatible
+
 " Load vim-plug
 if empty(glob("~/.vim/autoload/plug.vim"))
   execute '!mkdir -p ~/.vim/autoload'
@@ -29,7 +30,9 @@ Plug 'ervandew/supertab'
 Plug 'editorconfig/editorconfig-vim'
 Plug 'tmhedberg/matchit'
 Plug 'dense-analysis/ale'
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'prabirshrestha/vim-lsp'
+Plug 'rhysd/vim-lsp-ale'
+"Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'janko/vim-test'
 Plug 'puremourning/vimspector'
 Plug 'github/copilot.vim'
@@ -48,15 +51,17 @@ Plug 'peitalin/vim-jsx-typescript'
 Plug 'vim-ruby/vim-ruby'
 Plug 'chr4/nginx.vim'
 Plug 'lepture/vim-jinja'
-Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+" Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'rust-lang/rust.vim'
-Plug 'hashivim/vim-terraform'
+"Plug 'hashivim/vim-terraform'
 Plug 'cespare/vim-toml', { 'branch': 'main' }
-Plug 'earthly/earthly.vim', { 'branch': 'main' }
+Plug 'chrisbra/csv.vim'
+Plug 'masukomi/vim-markdown-folding'
 
 " misc
 Plug 'vim-scripts/ScrollColors'
 Plug 'kshenoy/vim-signature'
+Plug 'jasonccox/vim-wayland-clipboard'
 call plug#end()
 filetype plugin indent on
 
@@ -87,6 +92,7 @@ set tabstop=2
 set shiftwidth=2
 set softtabstop=2
 set history=1000
+set colorcolumn=80,100
 
 " vim-jsx load .js files too
 let g:jsx_ext_required = 0
@@ -106,8 +112,10 @@ let g:ackprg = 'rg --vimgrep --no-heading'
 "nnoremap <F5> :UndotreeToggle<cr>
 nnoremap <leader>ev :vsplit $MYVIMRC<cr>
 nnoremap <leader>sv :source $MYVIMRC<cr>
-nnoremap <silent> <C-n> :NERDTreeToggle %<CR>
+nnoremap <silent> <C-n> :NERDTreeToggle<CR>
 nnoremap <silent> <leader>aa :Ack <C-r><C-w><cr>
+
+let NERDTreeIgnore=['\.pyc$', '__pycache__']
 
 " Super tab mappings
 inoremap <C-Space> <C-x><C-o>
@@ -115,9 +123,9 @@ inoremap <C-@> <C-x><C-o>
 
 "git rebase changes
 "nnoremap <silent> <leader>gd :s/^\S*\ /drop\ /g<CR>
-nnoremap <silent> <leader>gp :s/^\S*\ /pick\ /g<CR>
-nnoremap <silent> <leader>gs :s/^\S*\ /squash\ /g<CR>
-nnoremap <silent> <leader>ge :s/^\S*\ /edit\ /g<CR>
+"nnoremap <silent> <leader>gp :s/^\S*\ /pick\ /g<CR>
+"nnoremap <silent> <leader>gs :s/^\S*\ /squash\ /g<CR>
+"nnoremap <silent> <leader>ge :s/^\S*\ /edit\ /g<CR>
 
 " vim-test mappings
 nnoremap <silent> <leader>tn :TestNearest<CR>
@@ -129,7 +137,7 @@ let test#strategy = "vimterminal"
 "let test#strategy = "kitty"
 
 " ale bindings
-nnoremap <silent> <leader>gd :ALEGoToDefinition<CR>
+" nnoremap <silent> <leader>gd :ALEGoToDefinition<CR>
 nnoremap <silent> <leader>ad :ALEDetail<CR>
 nnoremap <silent> <leader>af :ALEFix<CR>
 
@@ -137,9 +145,46 @@ nnoremap <silent> <leader>af :ALEFix<CR>
 nnoremap <silent> <leader>rc :!cargo run<CR>
 nnoremap <silent> <leader>rp :RustPlay<CR>
 
+" LSP configurations for vim-lsp
+if executable('gopls')
+    autocmd User lsp_setup call lsp#register_server({
+        \   'name': 'gopls',
+        \   'cmd': ['gopls'],
+        \   'allowlist': ['go', 'gomod'],
+        \ })
+endif
+
+function! s:on_lsp_buffer_enabled() abort
+    " setlocal omnifunc=lsp#complete
+    setlocal signcolumn=yes
+    if exists('+tagfunc') | setlocal tagfunc=lsp#tagfunc | endif
+    nmap <buffer> gd <plug>(lsp-definition)
+    nmap <buffer> gs <plug>(lsp-document-symbol-search)
+    nmap <buffer> gS <plug>(lsp-workspace-symbol-search)
+    nmap <buffer> gr <plug>(lsp-references)
+    nmap <buffer> gi <plug>(lsp-implementation)
+    nmap <buffer> gt <plug>(lsp-type-definition)
+    nmap <buffer> <leader>rn <plug>(lsp-rename)
+    nmap <buffer> [g <plug>(lsp-previous-diagnostic)
+    nmap <buffer> ]g <plug>(lsp-next-diagnostic)
+    nmap <buffer> K <plug>(lsp-hover)
+    nnoremap <buffer> <expr><c-f> lsp#scroll(+4)
+    nnoremap <buffer> <expr><c-d> lsp#scroll(-4)
+
+    let g:lsp_format_sync_timeout = 1000
+    autocmd! BufWritePre *.rs,*.go call execute('LspDocumentFormatSync')
+endfunction
+
+augroup lsp_install
+    au!
+    " call s:on_lsp_buffer_enabled only for languages that has the server registered.
+    autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
+augroup END
+
+" ale Settings
 let g:ale_ruby_rubocop_executable = 'bundle'
+
 let g:ale_linters_ignore = {
-      \ 'go': ['gopls'],
       \ 'ruby': ['standardrb','ruby','brakeman'],
       \ 'rust': ['rls'],
       \ 'typescriptreact': ['deno'],
@@ -147,15 +192,18 @@ let g:ale_linters_ignore = {
       \ }
 let g:ale_fixers = {
       \   'ruby': ['standardrb'],
+      \   'go': ['gofmt', 'goimports'],
       \   'rust': ['rustfmt'],
       \   'terraform': ['terraform'],
       \   'markdown': ['dprint'],
       \   'python': ['black']
       \}
 let g:ale_linters = {
+      \ 'go': ['golint'],
       \ 'rust': ['cargo', 'analyzer']
       \ }
 
+let g:ale_fix_on_save = 1
 let g:ale_completion_enabled = 1
 set omnifunc=ale#completion#OmniFunc
 let g:ale_completion_autoimport = 1
@@ -167,35 +215,7 @@ let g:ale_rust_cargo_check_tests = 1
 let g:rust_clip_command = 'xclip -selection clipboard'
 let g:rustfmt_autosave = 1
 
-" terraform vim things
-let g:terraform_fmt_on_save = 1
-
-let g:terraform_fmt_on_save = 1
-
-" Execute and get results in new window
-function! s:ExecuteInShell(command)
-  let command = join(map(split(a:command), 'expand(v:val)'))
-  let winnr = bufwinnr('^ShellExecPop$')
-  silent! execute  winnr < 0 ? 'botright new ShellExecPop' : winnr . 'wincmd w'
-  setlocal buftype=nowrite bufhidden=wipe nobuflisted noswapfile nowrap number
-  echo 'Execute ' . command . '...'
-  silent! execute 'silent %!'. command
-  silent! execute 'resize 8'
-  silent! redraw
-  silent! execute 'au BufUnload <buffer> execute bufwinnr(' . bufnr('#') . ') . ''wincmd w'''
-  silent! execute 'nnoremap <silent> <buffer> <LocalLeader>r :call <SID>ExecuteInShell(''' . command . ''')<CR>'
-  silent! execute 'wincmd p'
-  echo 'Shell command ' . command . ' executed.'
-endfunction
-command! -complete=shellcmd -nargs=+ Shell call s:ExecuteInShell(<q-args>)
-
-au BufRead,BufNewFile */cw-nginx/*/*.conf set ft=nginx
-au BufRead,BufNewFile */cw-nginx/*/*.proxy set ft=nginx
-
-nnoremap <silent> <leader>rs :0s/^/\#\ frozen_string_literal:\ true\r\r/g<CR>:w<CR>
-
-command! -bang -bar -nargs=* Gpush execute 'Dispatch<bang> -dir=' . fnameescape(FugitiveGitDir()) 'git push' <q-args>
-
+" maps and bindings etc
 function! OpenZippedFile(f)
   " get number of new (empty) buffer
   let l:b = bufnr('%')
@@ -230,8 +250,6 @@ xmap <Leader>di <Plug>VimspectorBalloonEval
 nmap <LocalLeader><F11> <Plug>VimspectorUpFrame
 nmap <LocalLeader><F12> <Plug>VimspectorDownFrame
 
-nnoremap <leader>rs :s/'\([^']\+\)'/:\1/g<CR>
-
 nnoremap <silent> <leader>sb :Git blame<CR>
 nnoremap <silent> <leader>sd :Gvdiffsplit<CR>
 nnoremap <silent> <leader>ss :G<CR>
@@ -251,6 +269,3 @@ function! RustCoverage()
 endfunction
 
 nnoremap <silent> <leader>rt :call RustCoverage()<CR>
-
-" Ensure Tiltfile is highlighted as Bazel code
-au BufRead,BufNewFile Tiltfile set filetype=python
