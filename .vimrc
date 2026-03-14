@@ -32,10 +32,8 @@ Plug 'tmhedberg/matchit'
 Plug 'dense-analysis/ale'
 Plug 'prabirshrestha/vim-lsp'
 Plug 'rhysd/vim-lsp-ale'
-"Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'janko/vim-test'
 Plug 'puremourning/vimspector'
-Plug 'github/copilot.vim'
 Plug 'psf/black', { 'branch': 'stable' }
 Plug 'gryf/pylint-vim'
 
@@ -51,17 +49,18 @@ Plug 'peitalin/vim-jsx-typescript'
 Plug 'vim-ruby/vim-ruby'
 Plug 'chr4/nginx.vim'
 Plug 'lepture/vim-jinja'
-" Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'rust-lang/rust.vim'
-"Plug 'hashivim/vim-terraform'
 Plug 'cespare/vim-toml', { 'branch': 'main' }
 Plug 'chrisbra/csv.vim'
 Plug 'masukomi/vim-markdown-folding'
+Plug 'earthly/earthly.vim', { 'branch': 'main' }
+Plug 'ggml-org/llama.vim'
 
 " misc
 Plug 'vim-scripts/ScrollColors'
 Plug 'kshenoy/vim-signature'
 Plug 'jasonccox/vim-wayland-clipboard'
+Plug 'blindFS/flattr.vim'
 call plug#end()
 filetype plugin indent on
 
@@ -94,6 +93,12 @@ set softtabstop=2
 set history=1000
 set colorcolumn=80,100
 
+" llama.vim
+"let g:llama_config = {
+"      \ 'endpoint_fim': 'http://192.168.1.36:8012/infill',
+"      \ 'endpoint_inst':'http://192.168.1.36:8012/v1/chat/completions'
+"      \ }
+
 " vim-jsx load .js files too
 let g:jsx_ext_required = 0
 
@@ -121,12 +126,6 @@ let NERDTreeIgnore=['\.pyc$', '__pycache__']
 inoremap <C-Space> <C-x><C-o>
 inoremap <C-@> <C-x><C-o>
 
-"git rebase changes
-"nnoremap <silent> <leader>gd :s/^\S*\ /drop\ /g<CR>
-"nnoremap <silent> <leader>gp :s/^\S*\ /pick\ /g<CR>
-"nnoremap <silent> <leader>gs :s/^\S*\ /squash\ /g<CR>
-"nnoremap <silent> <leader>ge :s/^\S*\ /edit\ /g<CR>
-
 " vim-test mappings
 nnoremap <silent> <leader>tn :TestNearest<CR>
 nnoremap <silent> <leader>tt :TestFile<CR>
@@ -137,7 +136,7 @@ let test#strategy = "vimterminal"
 "let test#strategy = "kitty"
 
 " ale bindings
-" nnoremap <silent> <leader>gd :ALEGoToDefinition<CR>
+nnoremap <silent> <leader>gd :ALEGoToDefinition<CR>
 nnoremap <silent> <leader>ad :ALEDetail<CR>
 nnoremap <silent> <leader>af :ALEFix<CR>
 
@@ -185,6 +184,7 @@ augroup END
 let g:ale_ruby_rubocop_executable = 'bundle'
 
 let g:ale_linters_ignore = {
+      \ 'go': ['gopls'],
       \ 'ruby': ['standardrb','ruby','brakeman'],
       \ 'rust': ['rls'],
       \ 'typescriptreact': ['deno'],
@@ -216,8 +216,8 @@ let g:ale_rust_cargo_check_tests = 1
 "      \ 'cargo': { 'features': 'all' },
 "      \ 'check': { 'features': 'all' }
 "      \ }
-let g:ale_terraform_terraform_executable = 'tofu'
-let g:ale_terraform_fmt_executable = 'tofu'
+" let g:ale_terraform_terraform_executable = 'tofu'
+" let g:ale_terraform_fmt_executable = 'tofu'
 
 " rust.vim things
 let g:rust_clip_command = 'xclip -selection clipboard'
@@ -246,9 +246,6 @@ augroup yarngtd
   au BufReadCmd *.yarn/$$virtual/*.zip/* call OpenZippedFile(expand('<afile>'))
   au BufReadCmd *.yarn/cache/*.zip/* call OpenZippedFile(expand('<afile>'))
 augroup END
-
-imap <M-Up> <Plug>(copilot-previous)
-imap <M-Down> <Plug>(copilot-next)
 
 hi SpellBad ctermbg=8
 
