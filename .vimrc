@@ -196,7 +196,9 @@ let g:ale_fixers = {
       \   'rust': ['rustfmt'],
       \   'terraform': ['terraform'],
       \   'markdown': ['dprint'],
-      \   'python': ['black']
+      \   'python': ['black'],
+      \   'html': ['prettier'],
+      \   'jinja.html': ['prettier']
       \}
 let g:ale_linters = {
       \ 'go': ['golint'],
@@ -210,6 +212,12 @@ let g:ale_completion_autoimport = 1
 let g:ale_rust_cargo_use_clippy = executable('cargo-clippy')
 let g:ale_rust_cargo_check_all_targets = 1
 let g:ale_rust_cargo_check_tests = 1
+" let g:ale_rust_analyzer_config = {
+"      \ 'cargo': { 'features': 'all' },
+"      \ 'check': { 'features': 'all' }
+"      \ }
+let g:ale_terraform_terraform_executable = 'tofu'
+let g:ale_terraform_fmt_executable = 'tofu'
 
 " rust.vim things
 let g:rust_clip_command = 'xclip -selection clipboard'
