@@ -16,11 +16,12 @@ Plug 'jlanzarotta/bufexplorer'
 Plug 'mbbill/undotree'
 Plug 'scrooloose/nerdtree'
 Plug 'vim-airline/vim-airline'
-Plug 'vim-scripts/ZoomWin'
 Plug 'easymotion/vim-easymotion'
 Plug 'will133/vim-dirdiff'
-Plug 'mileszs/ack.vim'
 Plug 'mattn/webapi-vim'
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+Plug 'ggml-org/llama.vim'
 
 " generic code helpers
 Plug 'tpope/vim-endwise'
@@ -38,7 +39,6 @@ Plug 'psf/black', { 'branch': 'stable' }
 Plug 'gryf/pylint-vim'
 
 " specific code holders/syntax
-Plug 'tpope/vim-rails'
 Plug 'elzr/vim-json'
 Plug 'othree/yajs.vim'
 Plug 'othree/xml.vim'
@@ -53,8 +53,6 @@ Plug 'rust-lang/rust.vim'
 Plug 'cespare/vim-toml', { 'branch': 'main' }
 Plug 'chrisbra/csv.vim'
 Plug 'masukomi/vim-markdown-folding'
-Plug 'earthly/earthly.vim', { 'branch': 'main' }
-Plug 'ggml-org/llama.vim'
 
 " misc
 Plug 'vim-scripts/ScrollColors'
@@ -118,7 +116,7 @@ let g:ackprg = 'rg --vimgrep --no-heading'
 nnoremap <leader>ev :vsplit $MYVIMRC<cr>
 nnoremap <leader>sv :source $MYVIMRC<cr>
 nnoremap <silent> <C-n> :NERDTreeToggle<CR>
-nnoremap <silent> <leader>aa :Ack <C-r><C-w><cr>
+nnoremap <silent> <leader>aa :Rg <C-r><C-w><cr>
 
 let NERDTreeIgnore=['\.pyc$', '__pycache__']
 
@@ -150,6 +148,13 @@ if executable('gopls')
         \   'name': 'gopls',
         \   'cmd': ['gopls'],
         \   'allowlist': ['go', 'gomod'],
+        \ })
+endif
+if executable('rust-analyzer')
+    autocmd User lsp_setup call lsp#register_server({
+        \   'name': 'analyzer',
+        \   'cmd': ['rust-analyzer'],
+        \   'allowlist': ['rust'],
         \ })
 endif
 
