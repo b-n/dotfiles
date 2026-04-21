@@ -31,8 +31,7 @@ Plug 'ervandew/supertab'
 Plug 'editorconfig/editorconfig-vim'
 Plug 'tmhedberg/matchit'
 Plug 'dense-analysis/ale'
-Plug 'prabirshrestha/vim-lsp'
-Plug 'rhysd/vim-lsp-ale'
+Plug 'yegappan/lsp'
 Plug 'janko/vim-test'
 Plug 'puremourning/vimspector'
 Plug 'psf/black', { 'branch': 'stable' }
@@ -142,49 +141,6 @@ nnoremap <silent> <leader>af :ALEFix<CR>
 nnoremap <silent> <leader>rc :!cargo run<CR>
 nnoremap <silent> <leader>rp :RustPlay<CR>
 
-" LSP configurations for vim-lsp
-if executable('gopls')
-    autocmd User lsp_setup call lsp#register_server({
-        \   'name': 'gopls',
-        \   'cmd': ['gopls'],
-        \   'allowlist': ['go', 'gomod'],
-        \ })
-endif
-if executable('rust-analyzer')
-    autocmd User lsp_setup call lsp#register_server({
-        \   'name': 'analyzer',
-        \   'cmd': ['rust-analyzer'],
-        \   'allowlist': ['rust'],
-        \ })
-endif
-
-function! s:on_lsp_buffer_enabled() abort
-    " setlocal omnifunc=lsp#complete
-    setlocal signcolumn=yes
-    if exists('+tagfunc') | setlocal tagfunc=lsp#tagfunc | endif
-    nmap <buffer> gd <plug>(lsp-definition)
-    nmap <buffer> gs <plug>(lsp-document-symbol-search)
-    nmap <buffer> gS <plug>(lsp-workspace-symbol-search)
-    nmap <buffer> gr <plug>(lsp-references)
-    nmap <buffer> gi <plug>(lsp-implementation)
-    nmap <buffer> gt <plug>(lsp-type-definition)
-    nmap <buffer> <leader>rn <plug>(lsp-rename)
-    nmap <buffer> [g <plug>(lsp-previous-diagnostic)
-    nmap <buffer> ]g <plug>(lsp-next-diagnostic)
-    nmap <buffer> K <plug>(lsp-hover)
-    nnoremap <buffer> <expr><c-f> lsp#scroll(+4)
-    nnoremap <buffer> <expr><c-d> lsp#scroll(-4)
-
-    let g:lsp_format_sync_timeout = 1000
-    autocmd! BufWritePre *.rs,*.go call execute('LspDocumentFormatSync')
-endfunction
-
-augroup lsp_install
-    au!
-    " call s:on_lsp_buffer_enabled only for languages that has the server registered.
-    autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
-augroup END
-
 " ale Settings
 let g:ale_ruby_rubocop_executable = 'bundle'
 
@@ -224,9 +180,65 @@ let g:ale_rust_cargo_check_tests = 1
 " let g:ale_terraform_terraform_executable = 'tofu'
 " let g:ale_terraform_fmt_executable = 'tofu'
 
+" lsp
+"" Go language server
+let lspOpts = #{
+  \ aleSupport: v:true,
+  \ autoHighlight: v:true,
+  \ hoverOnCursorHold: v:true,
+  \ hoverDelay: 500,
+  \ showDiagInPopup: v:true
+  \}
+autocmd User LspSetup call LspOptionsSet(lspOpts)
+
+let lspServers =[#{
+	\    name: 'golang',
+	\    filetype: ['go', 'gomod'],
+	\    path: '/home/ben/go/bin/gopls',
+	\    args: ['serve'],
+	\    syncInit: v:true
+  \  },#{
+	\    name: 'rustls',
+	\    filetype: ['rust'],
+	\    path: '/home/ben/.cargo/bin/rust-analyzer',
+	\    args: [],
+  \    initializationOptions: #{
+  \      inlayHints: #{
+  \        typeHints: #{
+  \          enable: v:true
+  \        },
+  \        parameterHints: #{
+  \          enable: v:true
+  \        }
+  \      },
+  \    },
+	\    syncInit: v:true
+  \  },#{
+  \    name: 'bashls',
+  \    filetype: 'sh',
+  \    path: '/usr/bin/bash-language-server',
+  \    args: ['start']
+  \  }]
+autocmd User LspSetup call LspAddServer(lspServers)
+
+autocmd User LspAttached {
+    nnoremap <buffer> <silent> gd <cmd>LspGotoDefinition<cr>
+    nnoremap <buffer> <silent> gD <cmd>LspPeakDefinition<cr>
+    nnoremap <buffer> <silent> gi <cmd>LspGotoImpl<cr>
+    nnoremap <buffer> <silent> gI <cmd>LspPeekImpl<cr>
+    nnoremap <buffer> <silent> gr <cmd>LspShowReferences<cr>
+    nnoremap <buffer> <silent> gs <cmd>LspSymbolSearch<cr>
+    nnoremap <buffer> <silent> gt <Cmd>LspGotoTypeDef<CR>
+    nnoremap <buffer> <silent> K  <cmd>LspHover<cr>
+    nnoremap <buffer> <silent> [d <cmd>LspDiag prev<cr>
+    nnoremap <buffer> <silent> ]d <cmd>LspDiag next<cr>
+    nnoremap <buffer> <silent> <leader>rn <cmd>LspRename<cr>
+    nnoremap <buffer> <silent> <leader>ca <cmd>LspCodeAction<cr>
+}
+
 " rust.vim things
 let g:rust_clip_command = 'xclip -selection clipboard'
-let g:rustfmt_autosave = 1
+" let g:rustfmt_autosave = 1
 
 " maps and bindings etc
 function! OpenZippedFile(f)
